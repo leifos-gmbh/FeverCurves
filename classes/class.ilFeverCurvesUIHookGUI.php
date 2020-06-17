@@ -44,8 +44,8 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 $this->applyFilter();
             }
 
-            $this->from = ilUtil::stripSlashes($_GET["from"]);
-            $this->to = ilUtil::stripSlashes($_GET["to"]);
+            $this->from = ilSession::get("skmg_pf_from");
+            $this->to = ilSession::get("skmg_pf_to");
 
             /*
             $this->getPluginObject()->includeClass("class.ilOptesUI.php");
@@ -458,9 +458,13 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             ? ""
             : $to->getDate()->get(IL_CAL_DATETIME);
 
+
+        ilSession::set("skmg_pf_from", $f);
+        ilSession::set("skmg_pf_to", $t);
+
         $ctrl->setParameterByClass("ilcontskillpresentationgui", "profile_id", (int) $_POST["profile_id"]);
-        $ctrl->setParameterByClass("ilcontskillpresentationgui", "from", $f);
-        $ctrl->setParameterByClass("ilcontskillpresentationgui", "to", $t);
+        //$ctrl->setParameterByClass("ilcontskillpresentationgui", "from", $f);
+        //$ctrl->setParameterByClass("ilcontskillpresentationgui", "to", $t);
 
         $ctrl->redirectByClass("ilcontskillpresentationgui", "");
     }
