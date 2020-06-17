@@ -39,6 +39,14 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             && $a_part == "personal_skill_html"
             && $ctrl->getContextObjType() == "crs")
         {
+
+            if ($_GET["pluginCmd"] == "applyFilter") {
+                $this->applyFilter();
+            }
+
+            $this->from = ilUtil::stripSlashes($_GET["from"]);
+            $this->to = ilUtil::stripSlashes($_GET["to"]);
+
             /*
             $this->getPluginObject()->includeClass("class.ilOptesUI.php");
             $o = new ilOptesUI();
@@ -84,6 +92,9 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             $tpl = $this->getPluginObject()->getTemplate("tpl.fever_skill.html");
 
             if (!self::$rendered) {
+
+                $tpl->setVariable("TOOLBAR", $this->renderToolbar());
+
                 $tpl->touchBlock("style_patch");
                 $tpl->setVariable("FEVER_CHART", $this->renderFeverChart());
                 self::$rendered = true;
@@ -106,6 +117,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
      */
     protected function renderFeverChart()
     {
+        return "FEVER CHART";
         $this->getPluginObject()->includeClass("class.ilLineVerticalChart.php");
         $this->getPluginObject()->includeClass("class.ilLineVerticalChartData.php");
         $this->getPluginObject()->includeClass("class.ilLineVerticalChartDataScatter.php");
@@ -223,6 +235,94 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         return $chart_html;
     }*/
 
+    /**
+     * Modify toolbar
+     * @param
+     * @return
+     */
+    protected function renderToolbar()
+    {
+        global $DIC;
+
+        $original_toolbar = $DIC->toolbar();
+        $ctrl = $DIC->ctrl();
+
+        $toolbar = new ilToolbarGUI();
+        $toolbar->setId("SkillFilter");
+        $ctrl->setParameterByClass("ilcontskillpresentationgui", "pluginCmd", "applyFilter");
+        $toolbar->setFormAction($ctrl->getFormActionByClass("ilcontskillpresentationgui"));
+        $ctrl->setParameterByClass("ilcontskillpresentationgui", "pluginCmd", "");
+        foreach ($original_toolbar->getItems() as $item) {
+            switch ($item["type"]) {
+                case "input":
+                    $toolbar->addInputItem($item["input"], true);
+                    break;
+
+                case "fbutton":
+                    // we ignore the select profile button for now
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // this hides the original toolbar
+        $original_toolbar->setItems([]);
+
+        $lng = $DIC->language();
+
+        // from
+        $from = new ilDateTimeInputGUI($lng->txt("from"), "from");
+        if ($this->from != "") {
+            $from->setDate(new ilDateTime($this->from, IL_CAL_DATETIME));
+        }
+        $toolbar->addInputItem($from, true);
+
+        // to
+        $to = new ilDateTimeInputGUI($lng->txt("to"), "to");
+        if ($this->to != "") {
+            $to->setDate(new ilDateTime($this->to, IL_CAL_DATETIME));
+        }
+        $toolbar->addInputItem($to, true);
+
+        // button
+        $toolbar->addFormButton(
+            $lng->txt("update"),
+            ""
+        );
+
+
+        return $toolbar->getHTML();
+    }
+
+    /**
+     * Apply filter
+     * @param
+     * @return
+     */
+    protected function applyFilter()
+    {
+        global $DIC;
+
+        $ctrl = $DIC->ctrl();
+        $from = new ilDateTimeInputGUI("", "from");
+        $from->checkInput();
+        $f = (is_null($from->getDate()))
+            ? ""
+            : $from->getDate()->get(IL_CAL_DATETIME);
+        $to = new ilDateTimeInputGUI("", "to");
+        $to->checkInput();
+        $t = (is_null($to->getDate()))
+            ? ""
+            : $to->getDate()->get(IL_CAL_DATETIME);
+
+        $ctrl->setParameterByClass("ilcontskillpresentationgui", "profile_id", (int) $_POST["profile_id"]);
+        $ctrl->setParameterByClass("ilcontskillpresentationgui", "from", $f);
+        $ctrl->setParameterByClass("ilcontskillpresentationgui", "to", $t);
+
+        $ctrl->redirectByClass("ilcontskillpresentationgui", "");
+    }
 
 }
 ?>
