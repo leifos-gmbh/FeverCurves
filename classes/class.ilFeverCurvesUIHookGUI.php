@@ -96,7 +96,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 $tpl->setVariable("TOOLBAR", $this->renderToolbar());
 
                 $tpl->touchBlock("style_patch");
-                $tpl->setVariable("FEVER_CHART", $this->renderFeverChart());
+                $tpl->setVariable("FEVER_CHART", $this->renderFeverChart($a_par));
                 self::$rendered = true;
             }
 
@@ -115,42 +115,183 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
      * Get fever chart
      * @return string
      */
-    protected function renderFeverChart()
+    protected function renderFeverChart($a_par)
     {
-        return "FEVER CHART";
+        global $DIC;
+
+        $ilUser = $DIC->user();
+        $lng = $DIC->language();
+
+        //return "FEVER CHART";
         $this->getPluginObject()->includeClass("class.ilLineVerticalChart.php");
         $this->getPluginObject()->includeClass("class.ilLineVerticalChartData.php");
         $this->getPluginObject()->includeClass("class.ilLineVerticalChartDataScatter.php");
         $this->getPluginObject()->includeClass("class.ilLineVerticalChartScatter.php");
 
-        $scatter_chart = new ilLineVerticalChartScatter("feverCurves", $this->getPluginObject());
-        $scatter_data1 = new ilLineVerticalChartDataScatter();
-        $scatter_data2 = new ilLineVerticalChartDataScatter();
-
-        $scatter_data1->setLabel("Zielstufe");
-        $scatter_data1->setColor("green");
-        $scatter_data1->addPoint(4, 4);
-        $scatter_data1->addPoint(3, 3);
-        $scatter_data1->addPoint(3, 2);
-        $scatter_data1->addPoint(4, 1);
-        $scatter_data1->addPoint(3, 0);
-
-        $scatter_data2->setLabel("Eine Quelle");
-        $scatter_data2->setColor("red");
-        $scatter_data2->addPoint(1, 4);
-        $scatter_data2->addPoint(0, 3);
-        $scatter_data2->addPoint(1, 2);
-        $scatter_data2->addPoint(2, 1);
-        $scatter_data2->addPoint(1, 0);
-
-        $scatter_chart->addData($scatter_data1);
-        $scatter_chart->addData($scatter_data2);
 
 
-        $chart_html1 = $scatter_chart->getHTML();
+        //if ($a_skills == null) {
+        $a_skills = $a_par["personal_skills_gui"]->obj_skills;
+        //}
 
-        $all_chart_html  = $chart_html;
-        $all_chart_html .= $chart_html1;
+
+        //if ($a_user_id == 0) {
+        $user_id = $ilUser->getId();
+        //} else {
+        //    $user_id = $a_user_id;
+        //}
+
+        $skills = array();
+        if ($a_par["personal_skills_gui"]->getProfileId() > 0) {
+            $profile = new ilSkillProfile($a_par["personal_skills_gui"]->getProfileId());
+            $this->profile_levels = $profile->getSkillLevels();
+
+            foreach ($this->profile_levels as $l) {
+                $skills[] = array(
+                    "base_skill_id" => $l["base_skill_id"],
+                    "tref_id" => $l["tref_id"],
+                    "level_id" => $l["level_id"]
+                );
+            }
+        } elseif (is_array($a_skills)) {
+            $skills = $a_skills;
+        }
+
+        // get actual levels for gap analysis
+        $a_par["personal_skills_gui"]->getActualLevels($skills, $user_id);
+
+        $incl_self_eval = false;
+        if (count($a_par["personal_skills_gui"]->getGapAnalysisSelfEvalLevels()) > 0) {
+            $incl_self_eval = true;
+            $self_vals = $a_par["personal_skills_gui"]->getGapAnalysisSelfEvalLevels();
+        }
+
+        // output chart stuff
+        $all_chart_html = "";
+
+        // determine skills that should be shown in the chart
+        $sw_skills = array();
+        foreach ($skills as $sk) {
+            if (!in_array($sk["base_skill_id"] . ":" . $sk["tref_id"], $a_par["personal_skills_gui"]->hidden_skills)) {
+                $sw_skills[] = $sk;
+            }
+        }
+
+        if (count($sw_skills) >= 3) {
+            $skill_packages = array();
+
+            if (count($sw_skills) < 8) {
+                $skill_packages[1] = $sw_skills;
+            } else {
+                $mod = count($sw_skills) % 7;
+                $pkg_num = floor((count($sw_skills) - 1) / 7) + 1;
+                $cpkg = 1;
+                foreach ($sw_skills as $k => $s) {
+                    $skill_packages[$cpkg][$k] = $s;
+                    if ($mod < 3 && count($skill_packages) == ($pkg_num - 1) && count($skill_packages[$cpkg]) == 3 + $mod) {
+                        $cpkg += 1;
+                    } elseif (count($skill_packages[$cpkg]) == 7) {
+                        $cpkg += 1;
+                    }
+                }
+            }
+
+            $pkg_cnt = 0;
+            foreach ($skill_packages as $pskills) {
+                $pkg_cnt++;
+                $max_cnt = 0;
+                $leg_labels = array();
+                $level_labels = array();
+                //var_dump($this->profile_levels);
+                //foreach ($this->profile_levels as $k => $l)
+
+                // write target, actual and self counter to skill array
+                foreach ($pskills as $k => $l) {
+                    //$bs = new ilBasicSkill($l["base_skill_id"]);
+                    $bs = new ilBasicSkill($l["base_skill_id"]);
+                    $leg_labels[] = ilBasicSkill::_lookupTitle($l["base_skill_id"], $l["tref_id"]);
+                    $levels = $bs->getLevelData();
+                    $cnt = 0;
+                    foreach ($levels as $lv) {
+                        $cnt++;
+                        if ($l["level_id"] == $lv["id"]) {
+                            $pskills[$k]["target_cnt"] = $cnt;
+                        }
+                        if ($a_par["personal_skills_gui"]->actual_levels[$l["base_skill_id"]][$l["tref_id"]] == $lv["id"]) {
+                            $pskills[$k]["actual_cnt"] = $cnt;
+                        }
+                        if ($incl_self_eval) {
+                            if ($self_vals[$l["base_skill_id"]][$l["tref_id"]] == $lv["id"]) {
+                                $pskills[$k]["self_cnt"] = $cnt;
+                            }
+                        }
+                        $max_cnt = max($max_cnt, $cnt);
+
+                        if (!in_array($lv["title"], $level_labels)) {
+                            $level_labels[] = $lv["title"];
+                        }
+                    }
+                }
+
+                $scatter_chart = new ilLineVerticalChartScatter("fever_curves" . $pkg_cnt, $this->getPluginObject());
+                $scatter_chart->setYAxisMax(sizeof($level_labels) - 1); // eleganteren Weg finden
+                $scatter_chart->setXAxisMax($max_cnt - 1);
+                $scatter_chart->setYAxisLabels($leg_labels);
+                $scatter_chart->setXAxisLabels($level_labels);
+
+                // target level
+                $scatter_data1 = new ilLineVerticalChartDataScatter();
+                $scatter_data1->setLabel($lng->txt("skmg_target_level"));
+                $scatter_data1->setColor("green"); // change to hex code
+
+                // other users
+                $scatter_data2 = new ilLineVerticalChartDataScatter();
+                if ($a_par["personal_skills_gui"]->gap_cat_title != "") {
+                    $scatter_data2->setLabel($a_par["personal_skills_gui"]->gap_cat_title);
+                } elseif ($a_par["personal_skills_gui"]->gap_mode == "max_per_type") {
+                    $scatter_data2->setLabel($lng->txt("objs_" . $a_par["personal_skills_gui"]->gap_mode_type));
+                } elseif ($a_par["personal_skills_gui"]->gap_mode == "max_per_object") {
+                    $scatter_data2->setLabel(ilObject::_lookupTitle($a_par["personal_skills_gui"]->gap_mode_obj_id));
+                }
+                $scatter_data2->setColor("red"); // change to hex code
+
+                // self evaluation
+                if ($incl_self_eval) {
+                    $scatter_data3 = new ilLineVerticalChartDataScatter();
+                    $scatter_data3->setLabel($lng->txt("skmg_self_evaluation"));
+                    $scatter_data3->setColor("blue"); // change to hex code
+                }
+
+                // fill in data
+                $cnt = 0;
+                foreach ($pskills as $pl) {
+                    $scatter_data1->addPoint(((int) $pl["target_cnt"] - 1), $cnt); // addPoint prüfen ob Wert überhaupt vorhanden, ansonsten überspringen
+                    $scatter_data2->addPoint((int) $pl["actual_cnt"] - 1, $cnt); // addPoint prüfen ob Wert überhaupt vorhanden, ansonsten überspringen
+                    if ($incl_self_eval) {
+                        $scatter_data3->addPoint((int) $pl["self_cnt"] - 1, $cnt); // addPoint prüfen ob Wert überhaupt vorhanden, ansonsten überspringen
+                    }
+                    $cnt++;
+                }
+
+                // add data to chart
+                if ($a_par["personal_skills_gui"]->getProfileId() > 0) {
+                    $scatter_chart->addData($scatter_data1);
+                }
+                $scatter_chart->addData($scatter_data2);
+                if ($incl_self_eval && count($a_par["personal_skills_gui"]->getGapAnalysisSelfEvalLevels()) > 0) {
+                    $scatter_chart->addData($scatter_data3);
+                }
+
+                $scatter_chart_html = $scatter_chart->getHTML();
+
+                $all_chart_html .= $scatter_chart_html;
+            }
+
+            $pan = ilPanelGUI::getInstance();
+            $pan->setPanelStyle(ilPanelGUI::PANEL_STYLE_PRIMARY);
+            $pan->setBody($all_chart_html);
+            $all_chart_html = $pan->getHTML();
+        }
 
         return $all_chart_html;
     }
