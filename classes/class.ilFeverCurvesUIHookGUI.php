@@ -106,7 +106,41 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
      */
     protected function renderFeverChart()
     {
-        return "FEVER CHART";
+        $this->getPluginObject()->includeClass("class.ilLineVerticalChart.php");
+        $this->getPluginObject()->includeClass("class.ilLineVerticalChartData.php");
+        $this->getPluginObject()->includeClass("class.ilLineVerticalChartDataScatter.php");
+        $this->getPluginObject()->includeClass("class.ilLineVerticalChartScatter.php");
+
+        $scatter_chart = new ilLineVerticalChartScatter("feverCurves", $this->getPluginObject());
+        $scatter_data1 = new ilLineVerticalChartDataScatter();
+        $scatter_data2 = new ilLineVerticalChartDataScatter();
+
+        $scatter_data1->setLabel("Zielstufe");
+        $scatter_data1->setColor("green");
+        $scatter_data1->addPoint(4, 4);
+        $scatter_data1->addPoint(3, 3);
+        $scatter_data1->addPoint(3, 2);
+        $scatter_data1->addPoint(4, 1);
+        $scatter_data1->addPoint(3, 0);
+
+        $scatter_data2->setLabel("Eine Quelle");
+        $scatter_data2->setColor("red");
+        $scatter_data2->addPoint(1, 4);
+        $scatter_data2->addPoint(0, 3);
+        $scatter_data2->addPoint(1, 2);
+        $scatter_data2->addPoint(2, 1);
+        $scatter_data2->addPoint(1, 0);
+
+        $scatter_chart->addData($scatter_data1);
+        $scatter_chart->addData($scatter_data2);
+
+
+        $chart_html1 = $scatter_chart->getHTML();
+
+        $all_chart_html  = $chart_html;
+        $all_chart_html .= $chart_html1;
+
+        return $all_chart_html;
     }
 
 
