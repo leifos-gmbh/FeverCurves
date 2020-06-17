@@ -160,6 +160,20 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         // get actual levels for gap analysis
         $a_par["personal_skills_gui"]->getActualLevels($skills, $user_id);
 
+
+
+        foreach ($skills as $sk) {
+            $skill_entry_data = $this->getSkillEntryData($a_par, $sk["base_skill_id"], $sk["tref_id"]);
+            //var_dump($skill_entry_data["level_data"]);
+            //var_dump($skill_entry_data["all_level_entries"]);
+            //var_dump($skill_entry_data["profile_target"]);
+        }
+        //exit;
+
+
+
+
+
         $incl_self_eval = false;
         if (count($a_par["personal_skills_gui"]->getGapAnalysisSelfEvalLevels()) > 0) {
             $incl_self_eval = true;
@@ -295,6 +309,74 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
         return $all_chart_html;
     }
+
+
+    function getSkillEntryData($a_par, $a_top_skill_id, $a_tref_id)
+    {
+        global $DIC;
+
+        $ilUser = $DIC->user();
+
+        $stree = new ilSkillTree();
+        $vtree = new ilVirtualSkillTree();
+        $tref_id = $a_tref_id;
+        $skill_id = $a_top_skill_id;
+        if (ilSkillTreeNode::_lookupType($a_top_skill_id) == "sktr") {
+            $tref_id = $a_top_skill_id;
+            $skill_id = ilSkillTemplateReference::_lookupTemplateId($a_top_skill_id);
+        }
+        $b_skills = $vtree->getSubTreeForCSkillId($skill_id . ":" . $tref_id, true);
+
+        foreach ($b_skills as $bs) {
+            $bs["id"] = $bs["skill_id"];
+            $bs["tref"] = $bs["tref_id"];
+
+            //var_dump($bs);
+            //exit;
+
+
+            $skill = ilSkillTreeNodeFactory::getInstance($bs["id"]);
+            $level_data = $skill->getLevelData();
+
+            $profile = new ilSkillProfile($a_par["personal_skills_gui"]->getProfileId());
+            $profile_levels = $profile->getSkillLevels();
+
+            $a_activated_levels = array();
+
+            foreach ($level_data as $k => $v) {
+                foreach ($profile_levels as $pl) {
+                    if ($pl["level_id"] == $v["id"] &&
+                        $pl["base_skill_id"] == $v["skill_id"] &&
+                        $bs["tref"] == $pl["tref_id"]) {
+                        $a_activated_levels[] = $pl["level_id"];
+                        //var_dump($a_activated_levels);
+                    }
+                }
+            }
+
+            // get all object triggered entries and render them
+            $all_level_entries = array();
+            foreach ($skill->getAllHistoricLevelEntriesOfUser($bs["tref"], $ilUser->getId(),
+                ilBasicSkill::EVAL_BY_ALL) as $level_entry) {
+                if (count($a_par["personal_skills_gui"]->getTriggerObjectsFilter()) && !in_array($level_entry['trigger_obj_id'],
+                        $a_par["personal_skills_gui"]->getTriggerObjectsFilter())) {
+                    continue;
+                }
+
+                if ($a_par["personal_skills_gui"]->getFilter()->isInRange($level_data, $level_entry)) {
+                    $all_level_entries[] = $level_entry;
+                }
+            }
+
+            // exit;
+
+            //var_dump($level_data);
+        }
+        //exit;
+        $data = ["level_data" => $level_data, "all_level_entries" => $all_level_entries, "profile_target" => $a_activated_levels];
+        return $data;
+    }
+
 
 
     /**
