@@ -237,7 +237,7 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
     {
         $preferences = new stdClass();
         $preferences->tooltips = new stdClass();
-        $preferences->tooltips->enabled = false;
+        $preferences->tooltips->enabled = true;
         $preferences->legend = new stdClass();
         $preferences->legend->position = "right";
         $preferences->xAxis = new stdClass();
