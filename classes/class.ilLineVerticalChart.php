@@ -71,9 +71,11 @@ abstract class ilLineVerticalChart
 
         $y_index = 0;
         $y_labels = array();
-        foreach ($this->getYAxisLabels() as $label) {
-            $y_labels[$y_index] = $label;
-            $y_index++;
+        if (is_array($this->getYAxisLabels())) {
+            foreach ($this->getYAxisLabels() as $label) {
+                $y_labels[$y_index] = $label;
+                $y_index++;
+            }
         }
         $chart->setVariable("YLABELS", json_encode($y_labels));
 
@@ -82,9 +84,11 @@ abstract class ilLineVerticalChart
 
         $x_index = 0;
         $x_labels = array();
-        foreach ($this->getXAxisLabels() as $label) {
-            $x_labels[$x_index] = $label;
-            $x_index++;
+        if (is_array($this->getXAxisLabels())) {
+            foreach ($this->getXAxisLabels() as $label) {
+                $x_labels[$x_index] = $label;
+                $x_index++;
+            }
         }
         $chart->setVariable("XLABELS", json_encode($x_labels));
 

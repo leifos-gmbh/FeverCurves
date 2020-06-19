@@ -93,8 +93,10 @@ abstract class ilLineVerticalChartData
         $series = new stdClass();
         $series->label = $this->getLabel();
         $series->data = array();
-        foreach ($this->getPoints() as $point) {
-            $series->data[] = ["x" => $point[0], "y" => $point[1]];
+        if (is_array($this->getPoints())) {
+            foreach ($this->getPoints() as $point) {
+                $series->data[] = ["x" => $point[0], "y" => $point[1]];
+            }
         }
         //$series->borderColor = $this->getColor();
 

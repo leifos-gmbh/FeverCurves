@@ -159,19 +159,21 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
 
 
-
         // output chart stuff
-        $all_chart_html = "";
-
+        $scatter_chart_html = "";
 
 
         $comp_labels = array();
         $level_labels = array();
         $all_level_entries = array();
-        $cnt_entries = 0;
+        $cnt_all_level_entries = 0;
 
-        $numbers = array();
-        $types = array();
+        $all_numbers = array();
+        $all_types = array();
+        $all_dates = array();
+
+        //var_dump($skills);
+        //exit;
 
         foreach ($skills as $k => $l) {
 
@@ -182,7 +184,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
             // get all object triggered entries
             $level_entries = array(); //alle Kompetenzeinträge aus dem Kurs
-            foreach ($bs->getAllHistoricLevelEntriesOfUser($l["tref"], $ilUser->getId(),
+            foreach ($bs->getAllHistoricLevelEntriesOfUser($l["tref_id"], $user_id,
                 ilBasicSkill::EVAL_BY_ALL) as $entry) {
                 if (count($a_par["personal_skills_gui"]->getTriggerObjectsFilter()) && !in_array($entry['trigger_obj_id'],
                         $a_par["personal_skills_gui"]->getTriggerObjectsFilter())) {
@@ -193,7 +195,8 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                     $level_entries[] = $entry;
                 }
             }
-            $cnt_entries = sizeof($level_entries);
+
+            $cnt_all_level_entries = sizeof($level_entries);
             $all_level_entries[] = $level_entries;
 
 
@@ -209,99 +212,95 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 }
             }
 
-            $nums = array();
-            $type = array();
+            $numbers = array();
+            $types = array();
+            $dates = array();
+            //var_dump($level_entries);
             foreach ($level_entries as $entry) {
+                //var_dump($entry);
                 $num_data = $bs->getLevelData($entry["level_id"]);
+                //var_dump($num_data);
                 $num = (float) $num_data["nr"];
                 $num = $num + (float) $entry["next_level_fulfilment"];
-                $nums[] = $num;
+                $numbers[] = $num;
 
-                if ($entry["self_eval"] == 1) {
-                    $type[] = ilSkillEval::TYPE_SELF_EVAL;
-                }
-                else if ($entry["trigger_obj_type"] == "tst") {
-                    $type[] = ilSkillEval::TYPE_MEASUREMENT;
-                }
-                else {
-                    $type[] = ilSkillEval::TYPE_APPRAISAL;
-                }
-
+                $types[] = $entry["trigger_title"];
+                $dates[] = $entry["status_date"];
             }
-            $numbers[] = $nums;
-            $types[] = $type;
+            //var_dump($numbers);
+            //exit;
+            $all_numbers[] = $numbers;
+            $all_types[] = $types;
+            $all_dates[] = $dates;
         }
 
-
-        //var_dump($all_level_entries); exit;
-
-        for($ct = 0; $ct < $cnt_entries; $ct++) {
-            $merged[] = array_column($numbers, $ct);
-        }
+        //var_dump($all_numbers);
+        //exit;
 
 
         $scatter_chart = new ilLineVerticalChartScatter("fever_curves", $this->getPluginObject());
-        $scatter_chart->setYAxisMax(sizeof($level_labels) - 1); // eleganteren Weg finden?
-        $scatter_chart->setXAxisMax(sizeof($levels) - 1); //// eleganteren Weg finden?
+        $scatter_chart->setYAxisMax(sizeof($comp_labels) - 1); // eleganteren Weg finden?
+        $scatter_chart->setXAxisMax(sizeof($level_labels) - 1); //// eleganteren Weg finden?
         $scatter_chart->setYAxisLabels($comp_labels);
         $scatter_chart->setXAxisLabels($level_labels);
 
         // target level
-        $scatter_data1 = new ilLineVerticalChartDataScatter();
-        $scatter_data1->setLabel($lng->txt("skmg_target_level"));
-        //$scatter_data1->setColor("green"); // change to hex code
-
-
+        $scatter_data_target = new ilLineVerticalChartDataScatter();
+        $scatter_data_target->setLabel($lng->txt("skmg_target_level"));
+        //$scatter_data_target->setColor("green"); // change to hex code
 
 
         // fill in data
         $cnt = 0;
         //var_dump($skills); exit;
         foreach ($skills as $pl) {
-            $scatter_data1->addPoint(((int) $pl["target_cnt"] - 1), $cnt); // addPoint prüfen ob Wert überhaupt vorhanden, ansonsten überspringen
+            $scatter_data_target->addPoint(((int) $pl["target_cnt"] - 1), $cnt);
             $cnt++;
         }
 
+        // add data to chart
+        if ($a_par["personal_skills_gui"]->getProfileId() > 0) {
+            $scatter_chart->addData($scatter_data_target);
+        }
 
 
-        if (is_array($merged)) {
-            foreach ($merged as $i => $line) {
-                $scatter_data2 = new ilLineVerticalChartDataScatter();
-                $scatter_data2->setLabel($lng->txt("skmg_eval_type_" . $types[0][$i]));
-                //$scatter_data2->setColor("red"); // change to hex code
+        for($ct = 0; $ct < $cnt_all_level_entries; $ct++) {
+            $line_numbers[] = array_column($all_numbers, $ct);
+        }
+
+        //var_dump($line_numbers);
+        //exit;
+
+
+
+        if (is_array($line_numbers)) {
+            foreach ($line_numbers as $i => $line) {
+                $scatter_data_source_entry = new ilLineVerticalChartDataScatter();
+                $scatter_data_source_entry->setLabel(
+                    $all_types[0][$i] . " (" . date("d.m.y", strtotime($all_dates[0][$i])) . ")"
+                );
+                //$scatter_data_source_entry->setColor("red"); // change to hex code
 
                 $c = 0;
-                foreach ($line as $point) {
-                    $scatter_data2->addPoint((float) $point - 1, $c); // addPoint prüfen ob Wert überhaupt vorhanden, ansonsten überspringen
+                foreach ($line as $point) { // point auf 0 prüfen ob Kompetenzeintrag vorhanden, ansonsten überspringen
+                    $scatter_data_source_entry->addPoint((float) $point - 1, $c);
                     $c++;
                 }
-
-                $scatter_chart->addData($scatter_data2);
-
+                $scatter_chart->addData($scatter_data_source_entry);
             }
         }
         //exit;
 
 
 
-        // add data to chart
-        if ($a_par["personal_skills_gui"]->getProfileId() > 0) {
-            $scatter_chart->addData($scatter_data1);
-        }
-
-
-
         $scatter_chart_html = $scatter_chart->getHTML();
-
-        $all_chart_html .= $scatter_chart_html;
-
 
         $pan = ilPanelGUI::getInstance();
         $pan->setPanelStyle(ilPanelGUI::PANEL_STYLE_PRIMARY);
-        $pan->setBody($all_chart_html);
-        $all_chart_html = $pan->getHTML();
+        $pan->setBody($scatter_chart_html);
+        $scatter_chart_html = $pan->getHTML();
 
-        return $all_chart_html;
+        return $scatter_chart_html;
     }
 
 

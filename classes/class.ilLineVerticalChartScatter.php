@@ -64,18 +64,16 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
 
         $this->setXAxisStepSize(1);
         $this->setXAxisMin(0);
-        $this->setXAxisMax(5); //remove this later
         $this->setXAxisPadding(0);
         $this->setYAxisStepSize(1);
         $this->setYAxisMin(0);
-        $this->setYAxisMax(5); //remove this later
         $this->setYAxisPadding(0);
     }
 
     /**
      * @return array
      */
-    public function getXAxisLabels() : array
+    public function getXAxisLabels() : ?array
     {
         return $this->x_labels;
     }
@@ -91,7 +89,7 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
     /**
      * @return array
      */
-    public function getYAxisLabels() : array
+    public function getYAxisLabels() : ?array
     {
         return $this->y_labels;
     }
@@ -179,7 +177,7 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
     /**
      * @param int $a_max
      */
-    public function setXAxisMax(int $a_max) //change this to optional null
+    public function setXAxisMax(int $a_max)
     {
         $this->x_max = $a_max;
     }
@@ -195,7 +193,7 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
     /**
      * @param int $a_max
      */
-    public function setYAxisMax(int $a_max) //change this to optional null
+    public function setYAxisMax(int $a_max)
     {
         $this->y_max = $a_max;
     }
@@ -236,10 +234,16 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
     public function parseOptions(array &$a_options)
     {
         $preferences = new stdClass();
+
+        // tooltips
         $preferences->tooltips = new stdClass();
         $preferences->tooltips->enabled = true;
+
+        // legend
         $preferences->legend = new stdClass();
         $preferences->legend->position = "right";
+
+        // x-axis
         $preferences->xAxis = new stdClass();
         $preferences->xAxis->type = "linear";
         $preferences->xAxis->beginAtZero = true;
@@ -247,6 +251,8 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
         $preferences->xAxis->min = $this->getXAxisMin();
         $preferences->xAxis->max = $this->getXAxisMax();
         $preferences->xAxis->padding = $this->getXAxisPadding();
+
+        // y-axis
         $preferences->yAxis = new stdClass();
         $preferences->yAxis->type = "linear";
         $preferences->yAxis->reverse = true;
