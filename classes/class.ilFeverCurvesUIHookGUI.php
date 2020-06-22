@@ -213,28 +213,34 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             }
 
             $numbers = array();
-            $types = array();
-            $dates = array();
-            //var_dump($level_entries);
-            foreach ($level_entries as $entry) {
+            //var_dump($level_entries); exit;
+            foreach ($level_entries as $i => $entry) {
                 //var_dump($entry);
                 $num_data = $bs->getLevelData($entry["level_id"]);
                 //var_dump($num_data);
                 $num = (float) $num_data["nr"];
                 $num = $num + (float) $entry["next_level_fulfilment"];
-                $numbers[] = $num;
+                $numbers[$entry["status_date"]] = $num; //hier prüfen ob bereits ein Eintrag mit diesem Datum vorhanden, ansonsten wird überschrieben
 
-                $types[] = $entry["trigger_title"];
-                $dates[] = $entry["status_date"];
+                if (in_array($entry["trigger_title"], $all_types)) {
+                    //hier prüfen ob bereits ein Eintrag mit diesem Titel vorhanden, ansonsten wird überschrieben
+                }
+                else {
+                    $all_types[] = $entry["trigger_title"];
+                }
+                if (in_array($entry["status_date"], $all_dates)) {
+                    //hier prüfen ob bereits ein Eintrag mit diesem Datum vorhanden, ansonsten wird überschrieben
+                }
+                else {
+                    $all_dates[] = $entry["status_date"];
+                }
             }
             //var_dump($numbers);
             //exit;
-            $all_numbers[] = $numbers;
-            $all_types[] = $types;
-            $all_dates[] = $dates;
+            $all_numbers[$l["base_skill_id"]] = $numbers;
         }
 
-        //var_dump($all_numbers);
+        //var_dump($all_types);
         //exit;
 
 
@@ -264,30 +270,46 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         }
 
 
-        for($ct = 0; $ct < $cnt_all_level_entries; $ct++) {
-            $line_numbers[] = array_column($all_numbers, $ct);
+        //for($ct = 0; $ct < $cnt_all_level_entries; $ct++) {
+        //    $line_numbers[] = array_column($all_numbers, $ct);
+        //}
+
+
+        $line_numbers = array();
+        foreach ($all_dates as $date) {
+            foreach ($all_numbers as $skill => $numbers) {
+                if (array_key_exists($date, $numbers)) {
+                    //
+                } else {
+                    $all_numbers[$skill][$date] = 0;
+                }
+            }
+            $line_numbers[$date] = array_combine(array_keys($all_numbers), array_column($all_numbers, $date));
         }
 
         //var_dump($line_numbers);
         //exit;
 
+        $count = 0;
+        foreach ($line_numbers as $i => $line) {
+            $title_label = $all_types[$count];
+            $date_label = $i;
 
+            $scatter_data_source_entry = new ilLineVerticalChartDataScatter();
+            $scatter_data_source_entry->setLabel(
+                $title_label . " (" . date("d.m.y", strtotime($date_label)) . ")"
+            );
+            //$scatter_data_source_entry->setColor("red"); // change to hex code
 
-        if (is_array($line_numbers)) {
-            foreach ($line_numbers as $i => $line) {
-                $scatter_data_source_entry = new ilLineVerticalChartDataScatter();
-                $scatter_data_source_entry->setLabel(
-                    $all_types[0][$i] . " (" . date("d.m.y", strtotime($all_dates[0][$i])) . ")"
-                );
-                //$scatter_data_source_entry->setColor("red"); // change to hex code
-
-                $c = 0;
-                foreach ($line as $point) { // point auf 0 prüfen ob Kompetenzeintrag vorhanden, ansonsten überspringen
+            $c = 0;
+            foreach ($line as $point) {
+                if ($point != 0) {
                     $scatter_data_source_entry->addPoint((float) $point - 1, $c);
-                    $c++;
                 }
-                $scatter_chart->addData($scatter_data_source_entry);
+                $c++;
             }
+            $scatter_chart->addData($scatter_data_source_entry);
+            $count++;
         }
         //exit;
 
