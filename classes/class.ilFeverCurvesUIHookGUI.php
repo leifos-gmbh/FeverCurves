@@ -213,6 +213,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             }
 
             $numbers = array();
+            $types = array();
             //var_dump($level_entries); exit;
             foreach ($level_entries as $i => $entry) {
                 //var_dump($entry);
@@ -220,24 +221,17 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 //var_dump($num_data);
                 $num = (float) $num_data["nr"];
                 $num = $num + (float) $entry["next_level_fulfilment"];
-                $numbers[$entry["status_date"]] = $num; //hier prüfen ob bereits ein Eintrag mit diesem Datum vorhanden, ansonsten wird überschrieben
+                $numbers[$entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]] = $num;
+                $types[$entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]] = $entry["trigger_title"];
 
-                if (in_array($entry["trigger_title"], $all_types)) {
-                    //hier prüfen ob bereits ein Eintrag mit diesem Titel vorhanden, ansonsten wird überschrieben
-                }
-                else {
-                    $all_types[] = $entry["trigger_title"];
-                }
-                if (in_array($entry["status_date"], $all_dates)) {
-                    //hier prüfen ob bereits ein Eintrag mit diesem Datum vorhanden, ansonsten wird überschrieben
-                }
-                else {
-                    $all_dates[] = $entry["status_date"];
+                if (!in_array($entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"], $all_dates)) {
+                    $all_dates[] = $entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"];
                 }
             }
             //var_dump($numbers);
             //exit;
             $all_numbers[$l["base_skill_id"]] = $numbers;
+            $all_types[$l["base_skill_id"]] = $types;
         }
 
         //var_dump($all_types);
@@ -276,24 +270,28 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
 
         $line_numbers = array();
+        $new_types = array();
         foreach ($all_dates as $date) {
+            $new_types[$date] = array_column($all_types, $date);
+
             foreach ($all_numbers as $skill => $numbers) {
-                if (array_key_exists($date, $numbers)) {
-                    //
-                } else {
+                if (!array_key_exists($date, $numbers)) {
                     $all_numbers[$skill][$date] = 0;
                 }
             }
             $line_numbers[$date] = array_combine(array_keys($all_numbers), array_column($all_numbers, $date));
         }
 
-        //var_dump($line_numbers);
-        //exit;
+
+
+
+        //var_dump($new_types);
+        ///exit;
 
         $count = 0;
         foreach ($line_numbers as $i => $line) {
-            $title_label = $all_types[$count];
-            $date_label = $i;
+            $title_label = $new_types[$i][0];
+            $date_label = substr($i, 0, strpos($i, '_'));
 
             $scatter_data_source_entry = new ilLineVerticalChartDataScatter();
             $scatter_data_source_entry->setLabel(
