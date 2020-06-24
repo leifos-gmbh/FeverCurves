@@ -5,28 +5,23 @@
 
 </head>
 
-<canvas id="{ID}" <!-- width="1200" height="600" -->></canvas>
+<canvas id="{ID}" width="30" height="10" aria-label="Fever Curves Chart" role="img"></canvas>
 
 
 <script id="source1" language="javascript" type="text/javascript">
 
-    var daten = {SERIES}
-    console.log(daten);
-
-    var optionen = {PREFERENCES}
-    console.log(optionen);
-
-
-    var series = {SERIES}
-    var preferences = {PREFERENCES}
+    var series = {SERIES};
+    console.log(series);
+    var preferences = {PREFERENCES};
+    console.log(preferences);
 
 
-    var xLabels = {XLABELS}
+    var xLabels = {XLABELS};
     //var xLabels = {
     //  0 : 'Sehr niedrig', 1 : 'Niedrig', 2 : 'Mittel', 3 : 'Hoch', 4 : 'Sehr hoch', 0.5 : '', 1.5 : ''
     //}
 
-    var yLabels = {YLABELS}
+    var yLabels = {YLABELS};
     //var yLabels = {
     //  0 : 'Erste Kompetenz', 1 : 'Zweite Kompetenz', 2 : 'Dritte Kompetenz', 3 : 'Vierte Kompetenz', 4 : 'Fünfte Kompetenz',
     //  5: "Sechste Kompetenz", 6: "Siebente Kompetenz",
@@ -39,6 +34,8 @@
             datasets: series,
         },
         options: {
+          //responsive: true,
+          //maintainAspectRatio: false,
             scales: {
                 xAxes: [
                     {
@@ -77,14 +74,15 @@
             },
             tooltips: {
                 enabled: preferences.tooltips.enabled,
-                //callbacks: {
-                    //label: function(tooltipItem, data) {
-                      //console.log(tooltipItem);
-                      //var label = tooltipItem.xLabel;
-                      //label = label.toString();
-                      //return label;
-                    //},
-                //},
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                      var num = tooltipItem.xLabel + 1;
+                      num = Math.round(num * 100) / 100;
+                      var line = data.datasets[tooltipItem.datasetIndex].label;
+                      var label = line + ": " + num;
+                      return label;
+                    },
+                },
             },
           plugins: {
             colorschemes: {

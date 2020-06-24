@@ -11,8 +11,6 @@ include_once("./Services/UIComponent/classes/class.ilUIHookPluginGUI.php");
  */
 class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 {
-    protected $involved_courses = array();
-
     static protected $rendered = false;
 
     /**
@@ -47,47 +45,6 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             $this->from = ilSession::get("skmg_pf_from");
             $this->to = ilSession::get("skmg_pf_to");
 
-            /*
-            $this->getPluginObject()->includeClass("class.ilOptesUI.php");
-            $o = new ilOptesUI();
-
-            if ($o->getTriggerSkill() != $a_par["top_skill_id"])
-            {
-                return array("mode" => ilUIHookPluginGUI::KEEP, "html" => "");
-            }
-
-            $this->getPluginObject()->includeClass("class.ilOptesChart.php");
-            $this->getPluginObject()->includeClass("class.ilChartBubble.php");
-            $this->getPluginObject()->includeClass("class.ilChartDataBubble.php");
-
-            $tpl = $this->getPluginObject()->getTemplate("tpl.skill_addon.html");
-
-            include_once("./Services/UIComponent/Panel/classes/class.ilPanelGUI.php");
-            $p = ilPanelGUI::getInstance();
-
-            // main
-            $tpl->setCurrentBlock("chart");
-            $tpl->setVariable("TITLE", $this->getPluginObject()->txt("overview_all_courses"));
-            $tpl->setVariable("CHART", $this->getChartHTML(0, $a_par["user_id"]));
-            $tpl->parseCurrentBlock();
-            $ac = ilUtil::sortArray($this->involved_courses, "crs_title", "asc");
-            foreach ($ac as $tst_ref_id => $crs)
-            {
-                $tpl->setCurrentBlock("chart");
-                $tpl->setVariable("TITLE", $lng->txt("obj_crs").": ".$crs["crs_title"]);
-                $tpl->setVariable("CHART", $this->getChartHTML($crs["crs_ref_id"], $a_par["user_id"]));
-                $tpl->parseCurrentBlock();
-            }
-
-            $p->setBody($a_par["personal_skills_gui"]->renderSkillHTML($a_par["top_skill_id"], $a_par["user_id"],
-                $a_par["edit"], $a_par["tref_id"]));
-
-            include_once("./Services/Accordion/classes/class.ilAccordionGUI.php");
-            $acc = new ilAccordionGUI();
-            $acc->setId("optes_skill_acc");
-            $acc->addItem($this->getPluginObject()->txt("detail_skill_pres"),
-                $p->getHTML());
-            */
 
             $tpl = $this->getPluginObject()->getTemplate("tpl.fever_skill.html");
 
@@ -134,14 +91,15 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         $a_skills = $a_par["personal_skills_gui"]->obj_skills;
         //}
 
-
         //if ($a_user_id == 0) {
         $user_id = $ilUser->getId();
         //} else {
         //    $user_id = $a_user_id;
         //}
 
-        $skills = array(); // Kompetenzen mit jeweiliger Zielausprägung
+
+        // competences with target level
+        $skills = array();
         if ($a_par["personal_skills_gui"]->getProfileId() > 0) {
             $profile = new ilSkillProfile($a_par["personal_skills_gui"]->getProfileId());
             $profile_levels = $profile->getSkillLevels();
@@ -165,25 +123,24 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
         $comp_labels = array();
         $level_labels = array();
-        $all_level_entries = array();
-        $cnt_all_level_entries = 0;
 
         $all_numbers = array();
         $all_types = array();
         $all_dates = array();
 
-        //var_dump($skills);
-        //exit;
-
         foreach ($skills as $k => $l) {
 
             $bs = new ilBasicSkill($l["base_skill_id"]);
+
+            // competence labels for y-axis
             $comp_labels[] = ilBasicSkill::_lookupTitle($l["base_skill_id"], $l["tref_id"]);
-            $levels = $bs->getLevelData(); //mögliche Kompetenzeinträge
+
+            // possible competence levels for x-axis
+            $levels = $bs->getLevelData();
 
 
-            // get all object triggered entries
-            $level_entries = array(); //alle Kompetenzeinträge aus dem Kurs
+            // get all object (course) triggered entries
+            $level_entries = array();
             foreach ($bs->getAllHistoricLevelEntriesOfUser($l["tref_id"], $user_id,
                 ilBasicSkill::EVAL_BY_ALL) as $entry) {
                 if (count($a_par["personal_skills_gui"]->getTriggerObjectsFilter()) && !in_array($entry['trigger_obj_id'],
@@ -196,51 +153,49 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 }
             }
 
-            $cnt_all_level_entries = sizeof($level_entries);
-            $all_level_entries[] = $level_entries;
-
 
             $cnt = 0;
             foreach ($levels as $lv) {
                 $cnt++;
                 if ($l["level_id"] == $lv["id"]) {
-                    $skills[$k]["target_cnt"] = $cnt;
+                    $skills[$k]["target_cnt"] = $cnt; //von cnt zu nr ändern
                 }
 
                 if (!in_array($lv["title"], $level_labels)) {
-                    $level_labels[] = $lv["title"];
+                    $level_labels[] = $lv["title"]; //anders lösen, siehe oben(?)
                 }
             }
 
             $numbers = array();
             $types = array();
-            //var_dump($level_entries); exit;
             foreach ($level_entries as $i => $entry) {
-                //var_dump($entry);
                 $num_data = $bs->getLevelData($entry["level_id"]);
-                //var_dump($num_data);
                 $num = (float) $num_data["nr"];
                 $num = $num + (float) $entry["next_level_fulfilment"];
-                $numbers[$entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]] = $num;
-                $types[$entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]] = $entry["trigger_title"];
+                $numbers[
+                    $entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]
+                ] = $num;
+        //die Arrays umändern, die Keys sollen einzelne Einträge in extra Array werden(?)
+                $types[
+                    $entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]
+                ] = $entry["trigger_title"];
 
-                if (!in_array($entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"], $all_dates)) {
+                if (!in_array(
+                    $entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"],
+                    $all_dates
+                    )
+                ) {
                     $all_dates[] = $entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"];
                 }
             }
-            //var_dump($numbers);
-            //exit;
-            $all_numbers[$l["base_skill_id"]] = $numbers;
-            $all_types[$l["base_skill_id"]] = $types;
+            $all_numbers[$l["base_skill_id"] . "_" . $l["tref_id"]] = $numbers;
+            $all_types[$l["base_skill_id"] . "_" . $l["tref_id"]] = $types;
         }
-
-        //var_dump($all_types);
-        //exit;
 
 
         $scatter_chart = new ilLineVerticalChartScatter("fever_curves", $this->getPluginObject());
-        $scatter_chart->setYAxisMax(sizeof($comp_labels) - 1); // eleganteren Weg finden?
-        $scatter_chart->setXAxisMax(sizeof($level_labels) - 1); //// eleganteren Weg finden?
+        $scatter_chart->setYAxisMax(sizeof($comp_labels) - 1); //  eleganteren Weg finden?
+        $scatter_chart->setXAxisMax(sizeof($level_labels) - 1); // eleganteren Weg finden?
         $scatter_chart->setYAxisLabels($comp_labels);
         $scatter_chart->setXAxisLabels($level_labels);
 
@@ -250,25 +205,19 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         //$scatter_data_target->setColor("green"); // change to hex code
 
 
-        // fill in data
+        // fill in data for target level and add to chart
         $cnt = 0;
-        //var_dump($skills); exit;
         foreach ($skills as $pl) {
             $scatter_data_target->addPoint(((int) $pl["target_cnt"] - 1), $cnt);
             $cnt++;
         }
 
-        // add data to chart
         if ($a_par["personal_skills_gui"]->getProfileId() > 0) {
             $scatter_chart->addData($scatter_data_target);
         }
 
 
-        //for($ct = 0; $ct < $cnt_all_level_entries; $ct++) {
-        //    $line_numbers[] = array_column($all_numbers, $ct);
-        //}
-
-
+        //
         $line_numbers = array();
         $new_types = array();
         foreach ($all_dates as $date) {
@@ -283,11 +232,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         }
 
 
-
-
-        //var_dump($new_types);
-        ///exit;
-
+        // fill in data for source object levels and add to chart
         $count = 0;
         foreach ($line_numbers as $i => $line) {
             $title_label = $new_types[$i][0];
@@ -309,7 +254,6 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             $scatter_chart->addData($scatter_data_source_entry);
             $count++;
         }
-        //exit;
 
 
 
@@ -322,86 +266,6 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
         return $scatter_chart_html;
     }
-
-
-    /**
-     * Get chart HTML
-     *
-     * @param
-     * @return
-     */
-    /*
-    function getChartHTML($a_crs_ref_id, $a_user_id)
-    {
-        $chart = ilOptesChart::getInstanceByType(ilOptesChart::TYPE_BUBBLE, "optes_chart_".$a_crs_ref_id);
-        $chart->setPluginObject($this->getPluginObject());
-        //$chart = new ilChartBubble("optes_chart_".$a_crs_ref_id, 850, 250);
-        $pl = $this->getPluginObject();
-        $pl->includeClass("class.ilOptesUI.php");
-        $o = new ilOptesUI();
-        $rows = $o->getRows();
-
-        // remove rows without data
-        foreach ($o->getCols() as $c)
-        {
-            reset($rows);
-            foreach ($rows as $k => $r)
-            {
-                $val = $o->getCompetenceValueForMatrix($r["id"], $c["id"], $a_user_id, $a_crs_ref_id);
-                if ($val !== null)
-                {
-                    $rows[$k]["got_data"] = true;
-                }
-            }
-        }
-        $rows = array_filter($rows, function($r) {
-            return (isset($r["got_data"]));
-        });
-        if (count($rows) == 0)
-        {
-            return '<div class="alert alert-info" role="info">'.
-                '<h5 class="ilAccHeadingHidden"><a id="il_message_focus" name="il_message_focus">Fehlermeldung</a></h5>'.
-                $this->getPluginObject()->txt("no_data_yet").'</div>';
-        }
-
-        // set height
-        $height = (40 * count($rows)) + 50;
-        $chart->setSize(850, $height);
-
-        // fill char
-        $yticks = $xticks = array();
-        $cnt = 0;
-        foreach ($rows as $r)
-        {
-            $yticks[count($rows) - ($cnt++)] = $r["title"];
-        }
-        foreach ($o->getCols() as $c)
-        {
-            $cd = new ilChartDataBubble();
-            $xticks[++$i] = $c["title"];
-            reset($rows);
-            $cnt = 0;
-            foreach ($rows as $r)
-            {
-                $val = $o->getCompetenceValueForMatrix($r["id"], $c["id"], $a_user_id, $a_crs_ref_id);
-                $cd->addPoint($i, count($rows) - ($cnt++), round($val, 2));
-            }
-            $chart->addData($cd);
-        }
-        $chart->setTicks($xticks, $yticks, true);
-        $chart->setMinMax(0.5, 0.5 + count($o->getCols()), 0, 1 + count($rows));
-        $chart_html = $chart->getHTML();
-        if ($a_crs_ref_id == 0)
-        {
-            $this->involved_courses = array();
-            $ics = $o->getInvolvedCourses();
-            foreach ($ics as $k => $v)
-            {
-                $this->involved_courses[$v["crs_ref_id"]] = $v;
-            }
-        }
-        return $chart_html;
-    }*/
 
     /**
      * Modify toolbar
