@@ -98,7 +98,8 @@ abstract class ilLineVerticalChartData
                 $series->data[] = ["x" => $point[0], "y" => $point[1]];
             }
         }
-        //$series->borderColor = $this->getColor();
+        $series->borderColor = $this->getColor();
+        $series->backgroundColor = $this->getColor();
 
         $a_data[] = $series;
     }

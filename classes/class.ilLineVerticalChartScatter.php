@@ -64,10 +64,10 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
 
         $this->setXAxisStepSize(1);
         $this->setXAxisMin(0);
-        $this->setXAxisPadding(0);
+        $this->setXAxisPadding(10);
         $this->setYAxisStepSize(1);
         $this->setYAxisMin(0);
-        $this->setYAxisPadding(0);
+        $this->setYAxisPadding(10);
     }
 
     /**

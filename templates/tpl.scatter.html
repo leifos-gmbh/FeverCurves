@@ -1,7 +1,7 @@
 <head>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script> -->
 
 </head>
 
@@ -76,17 +76,26 @@
                 enabled: preferences.tooltips.enabled,
                 callbacks: {
                     label: function(tooltipItem, data) {
-                      var num = tooltipItem.xLabel + 1;
-                      num = Math.round(num * 100) / 100;
+                      var xValue = tooltipItem.xLabel;
+                      var xValuePer = xValue + 1;
+                      var perValue = xValuePer % parseInt(xValuePer);
+                      perValue = Math.round(perValue * 100);
+                      var num = 0;
+                      if (perValue === 0) {
+                        num = xLabels[parseInt(xValue)];
+                      }
+                      else {
+                        num = xLabels[parseInt(xValue)] + " + " + perValue + "%";
+                      }
                       var line = data.datasets[tooltipItem.datasetIndex].label;
-                      var label = line + ": " + num;
+                      label = line + ": " + num;
                       return label;
                     },
                 },
             },
           plugins: {
             colorschemes: {
-              scheme: 'brewer.SetOne9',
+              //scheme: 'brewer.SetOne9',
             },
           },
         },

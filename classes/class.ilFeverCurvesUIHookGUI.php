@@ -132,12 +132,8 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
             $bs = new ilBasicSkill($l["base_skill_id"]);
 
-            // competence labels for y-axis
-            $comp_labels[] = ilBasicSkill::_lookupTitle($l["base_skill_id"], $l["tref_id"]);
-
-            // possible competence levels for x-axis
+            // possible competence levels for skill
             $levels = $bs->getLevelData();
-
 
             // get all object (course) triggered entries
             $level_entries = array();
@@ -153,6 +149,8 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 }
             }
 
+            // competence labels for y-axis
+            $comp_labels[] = ilBasicSkill::_lookupTitle($l["base_skill_id"], $l["tref_id"]);
 
             $cnt = 0;
             foreach ($levels as $lv) {
@@ -161,8 +159,9 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                     $skills[$k]["target_cnt"] = $cnt; //von cnt zu nr ändern
                 }
 
+                // possible level labels for x-axis
                 if (!in_array($lv["title"], $level_labels)) {
-                    $level_labels[] = $lv["title"]; //anders lösen, siehe oben(?)
+                    $level_labels[] = $lv["title"];
                 }
             }
 
@@ -175,7 +174,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 $numbers[
                     $entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]
                 ] = $num;
-        //die Arrays umändern, die Keys sollen einzelne Einträge in extra Array werden(?)
+
                 $types[
                     $entry["status_date"] . "_" . $entry["trigger_obj_id"] . "_" . $entry["self_eval"]
                 ] = $entry["trigger_title"];
@@ -194,15 +193,15 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
 
         $scatter_chart = new ilLineVerticalChartScatter("fever_curves", $this->getPluginObject());
-        $scatter_chart->setYAxisMax(sizeof($comp_labels) - 1); //  eleganteren Weg finden?
-        $scatter_chart->setXAxisMax(sizeof($level_labels) - 1); // eleganteren Weg finden?
+        $scatter_chart->setYAxisMax(sizeof($comp_labels) - 1);
+        $scatter_chart->setXAxisMax(sizeof($level_labels) - 1);
         $scatter_chart->setYAxisLabels($comp_labels);
         $scatter_chart->setXAxisLabels($level_labels);
 
         // target level
         $scatter_data_target = new ilLineVerticalChartDataScatter();
         $scatter_data_target->setLabel($lng->txt("skmg_target_level"));
-        //$scatter_data_target->setColor("green"); // change to hex code
+        $scatter_data_target->setColor("#333333");
 
 
         // fill in data for target level and add to chart
@@ -217,7 +216,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         }
 
 
-        //
+        // move level entries for each source object to a new array
         $line_numbers = array();
         $new_types = array();
         foreach ($all_dates as $date) {
@@ -235,14 +234,26 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         // fill in data for source object levels and add to chart
         $count = 0;
         foreach ($line_numbers as $i => $line) {
+            $scatter_data_source_entry = new ilLineVerticalChartDataScatter();
+
+            $object_id = substr($i, strpos($i, '_')+1, -2);
+            $object_type = ilObject::_lookupType($object_id);
+            $object_self = substr($i, strpos($i, '_', strpos($i, '_')+1)+1);
+            if ($object_type == "tst") {
+                $scatter_data_source_entry->setColor("#21c5d8");
+            }
+            elseif ($object_self == 1) {
+                $scatter_data_source_entry->setColor("#6ea03c");
+            }
+            else {
+                $scatter_data_source_entry->setColor("#dcb496");
+            }
+
             $title_label = $new_types[$i][0];
             $date_label = substr($i, 0, strpos($i, '_'));
-
-            $scatter_data_source_entry = new ilLineVerticalChartDataScatter();
             $scatter_data_source_entry->setLabel(
                 $title_label . " (" . date("d.m.y", strtotime($date_label)) . ")"
             );
-            //$scatter_data_source_entry->setColor("red"); // change to hex code
 
             $c = 0;
             foreach ($line as $point) {
@@ -251,6 +262,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
                 }
                 $c++;
             }
+
             $scatter_chart->addData($scatter_data_source_entry);
             $count++;
         }
