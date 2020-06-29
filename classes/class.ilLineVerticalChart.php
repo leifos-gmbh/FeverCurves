@@ -67,6 +67,16 @@ abstract class ilLineVerticalChart
         $chart->setVariable("ID", $this->id);
 
 
+        // size of chart
+
+        if ($this->getWidth()) {
+            $chart->setVariable("WIDTH", $this->getWidth());
+        }
+        if ($this->getHeight()) {
+            $chart->setVariable("HEIGHT", $this->getHeight());
+        }
+
+
         // labels for y axis
 
         $y_index = 0;

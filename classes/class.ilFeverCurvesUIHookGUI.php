@@ -192,11 +192,25 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         }
 
 
+        //chart
+
         $scatter_chart = new ilLineVerticalChartScatter("fever_curves", $this->getPluginObject());
+
+        // size
+        $y_size = sizeof($comp_labels);
+        $chart_height = ($y_size > 4) ? ($y_size * 100) : 400;
+        $chart_width = $chart_height * 2;
+        $scatter_chart->setHeight($chart_height);
+        $scatter_chart->setWidth($chart_width);
+
+        // axes
         $scatter_chart->setYAxisMax(sizeof($comp_labels) - 1);
         $scatter_chart->setXAxisMax(sizeof($level_labels) - 1);
         $scatter_chart->setYAxisLabels($comp_labels);
         $scatter_chart->setXAxisLabels($level_labels);
+
+
+        //chart data
 
         // target level
         $scatter_data_target = new ilLineVerticalChartDataScatter();

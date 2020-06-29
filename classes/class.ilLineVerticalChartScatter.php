@@ -8,12 +8,22 @@
 class ilLineVerticalChartScatter extends ilLineVerticalChart
 {
     /**
-     * @var array
+     * @var int|null
+     */
+    protected $width;
+
+    /**
+     * @var int|null
+     */
+    protected $height;
+
+    /**
+     * @var array|null
      */
     protected $x_labels;
 
     /**
-     * @var array
+     * @var array|null
      */
     protected $y_labels;
 
@@ -62,12 +72,34 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
     {
         parent::__construct($a_id, $plugin);
 
+        $this->setWidth(1200);
+        $this->setHeight(600);
         $this->setXAxisStepSize(1);
         $this->setXAxisMin(0);
         $this->setXAxisPadding(10);
         $this->setYAxisStepSize(1);
         $this->setYAxisMin(0);
         $this->setYAxisPadding(10);
+    }
+
+    public function getWidth() : int
+    {
+        return $this->width;
+    }
+
+    public function setWidth(int $a_width)
+    {
+        $this->width = $a_width;
+    }
+
+    public function getHeight() : int
+    {
+        return $this->height;
+    }
+
+    public function setHeight(int $a_height)
+    {
+        $this->height = $a_height;
     }
 
     /**
@@ -234,6 +266,10 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
     public function parseOptions(array &$a_options)
     {
         $preferences = new stdClass();
+
+        // responsiveness
+        $preferences->responsive = true;
+        $preferences->maintainAspectRatio = false;
 
         // tooltips
         $preferences->tooltips = new stdClass();

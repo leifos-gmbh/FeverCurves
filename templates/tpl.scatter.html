@@ -5,7 +5,7 @@
 
 </head>
 
-<canvas id="{ID}" width=1200 height="600" aria-label="Fever Curves Chart" role="img"></canvas>
+<canvas id="{ID}" width={WIDTH} height={HEIGHT} aria-label="Fever Curves Chart" role="img"></canvas>
 
 
 <script id="source1" language="javascript" type="text/javascript">
@@ -15,17 +15,8 @@
     var preferences = {PREFERENCES};
     console.log(preferences);
 
-
     var xLabels = {XLABELS};
-    //var xLabels = {
-    //  0 : 'Sehr niedrig', 1 : 'Niedrig', 2 : 'Mittel', 3 : 'Hoch', 4 : 'Sehr hoch', 0.5 : '', 1.5 : ''
-    //}
-
     var yLabels = {YLABELS};
-    //var yLabels = {
-    //  0 : 'Erste Kompetenz', 1 : 'Zweite Kompetenz', 2 : 'Dritte Kompetenz', 3 : 'Vierte Kompetenz', 4 : 'Fünfte Kompetenz',
-    //  5: "Sechste Kompetenz", 6: "Siebente Kompetenz",
-    //}
 
 
     new Chart(document.getElementById('{ID}'), {
@@ -34,8 +25,8 @@
             datasets: series,
         },
         options: {
-          //responsive: true,
-          //maintainAspectRatio: false,
+          responsive: preferences.responsive,
+          maintainAspectRatio: preferences.maintainAspectRatio,
             scales: {
                 xAxes: [
                     {
