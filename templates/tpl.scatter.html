@@ -11,9 +11,9 @@
 <script id="source1" language="javascript" type="text/javascript">
 
     var series = {SERIES};
-    console.log(series);
+    //console.log(series);
     var preferences = {PREFERENCES};
-    console.log(preferences);
+    //console.log(preferences);
 
     var xLabels = {XLABELS};
     var yLabels = {YLABELS};
@@ -25,8 +25,15 @@
             datasets: series,
         },
         options: {
-          responsive: preferences.responsive,
-          maintainAspectRatio: preferences.maintainAspectRatio,
+            responsive: preferences.responsive,
+            maintainAspectRatio: preferences.maintainAspectRatio,
+            title: {
+                display: preferences.title.display,
+                position: preferences.title.position,
+                text: preferences.title.text,
+                fontStyle: preferences.title.fontStyle,
+                fontSize: preferences.title.fontSize,
+            },
             scales: {
                 xAxes: [
                     {
@@ -62,6 +69,14 @@
             },
             legend : {
                 position: preferences.legend.position,
+                labels: {
+                  generateLabels: function(chart) {
+                    labels = Chart.defaults.global.legend.labels.generateLabels(chart);
+                    //labels1 = labels[dataindex].text;
+                    //console.log(labels)
+                    return labels;
+                  },
+                },
             },
             tooltips: {
                 enabled: preferences.tooltips.enabled,
@@ -84,11 +99,6 @@
                     },
                 },
             },
-          plugins: {
-            colorschemes: {
-              //scheme: 'brewer.SetOne9',
-            },
-          },
         },
     });
 

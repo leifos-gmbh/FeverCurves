@@ -264,6 +264,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
             }
 
             $title_label = $new_types[$i][0];
+            $title_label = mb_strimwidth($title_label, 0, 30, "...");
             $date_label = substr($i, 0, strpos($i, '_'));
             $scatter_data_source_entry->setLabel(
                 $title_label . " (" . date("d.m.y", strtotime($date_label)) . ")"

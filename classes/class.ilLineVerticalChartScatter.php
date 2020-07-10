@@ -271,6 +271,14 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
         $preferences->responsive = true;
         $preferences->maintainAspectRatio = false;
 
+        // title
+        $preferences->title = new stdClass();
+        $preferences->title->display = true;
+        $preferences->title->position = "bottom";
+        $preferences->title->text = $this->plugin->txt("legend_hint");
+        $preferences->title->fontStyle = "italic";
+        $preferences->title->fontSize = 10;
+
         // tooltips
         $preferences->tooltips = new stdClass();
         $preferences->tooltips->enabled = true;
