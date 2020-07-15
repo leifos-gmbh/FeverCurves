@@ -2,7 +2,7 @@
 /* Copyright (c) 1998-2020 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
- * Fever curves skill profiles class
+ * Fever curves skill profile class
  *
  * @author Thomas Famula <famula@leifos.de>
  */
@@ -14,13 +14,18 @@ class ilFeverCurvesSkillProfile
     protected $id;
 
     /**
-     * ilFeverCurvesSkillProfiles constructor.
+     * ilFeverCurvesSkillProfile constructor.
+     *
+     * @param int $a_id
      */
     public function __construct(int $a_id)
     {
         $this->id = $a_id;
     }
 
+    /**
+     * @return int
+     */
     protected function getId()
     {
         return $this->id;
@@ -51,8 +56,7 @@ class ilFeverCurvesSkillProfile
     /**
      * Get ids from profiles which are deactivated for fever curves
      *
-     * @param
-     * @return
+     * @return array
      */
     public static function getDeactivatedProfileIds()
     {
@@ -72,6 +76,11 @@ class ilFeverCurvesSkillProfile
         return $profile_ids;
     }
 
+    /**
+     * Update activation status of competence profile for fever charts
+     *
+     * @param int $active
+     */
     public function updateActivation(int $active)
     {
         global $DIC;

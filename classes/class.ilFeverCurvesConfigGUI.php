@@ -1,8 +1,6 @@
 <?php
 /* Copyright (c) 1998-2020 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-include_once("./Services/Component/classes/class.ilPluginConfigGUI.php");
-
 use ILIAS\UI\Component\Input\Container\Form\Form;
 
 /**
@@ -54,9 +52,9 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
     }
 
     /**
-     * @return
-     *
      * Init configuration form
+     *
+     * @return Form
      */
     function initConfigurationForm()
     {
