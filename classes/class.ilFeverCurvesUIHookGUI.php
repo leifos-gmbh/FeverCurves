@@ -35,7 +35,8 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         // Skill UI Hook Plugin allows to modify the skill list
         if ($a_comp == "Services/Skill"
             && $a_part == "personal_skill_html"
-            && $ctrl->getContextObjType() == "crs")
+            && $ctrl->getContextObjType() == "crs"
+            && $this->checkProfileActivation($a_par) == true)
         {
 
             if ($_GET["pluginCmd"] == "applyFilter") {
@@ -385,6 +386,26 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
         //$ctrl->setParameterByClass("ilcontskillpresentationgui", "to", $t);
 
         $ctrl->redirectByClass("ilcontskillpresentationgui", "");
+    }
+
+    /**
+     * Check
+     *
+     * @param $a_par
+     */
+    protected function checkProfileActivation($a_par)
+    {
+        $this->getPluginObject()->includeClass("class.ilFeverCurvesSkillProfile.php");
+
+        $profile_id = $a_par["personal_skills_gui"]->getProfileId();
+        $deactivated_profile_ids = ilFeverCurvesSkillProfile::getDeactivatedProfileIds();
+
+        if (in_array($profile_id, $deactivated_profile_ids)) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 
 }

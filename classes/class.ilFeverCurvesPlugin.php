@@ -15,6 +15,15 @@ class ilFeverCurvesPlugin extends ilUserInterfaceHookPlugin
     {
         return "FeverCurves";
     }
+
+    function afterUninstall()
+    {
+        global $ilDB;
+
+        if ($ilDB->tableExists("skl_profile_fever")) {
+            $ilDB->dropTable("skl_profile_fever");
+        }
+    }
 }
 
 ?>
