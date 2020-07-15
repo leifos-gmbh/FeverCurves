@@ -117,9 +117,9 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
             foreach ($profile_ids as $id) {
                 $profile = new ilFeverCurvesSkillProfile($id);
                 if (!empty($result["checked_profiles"]) && in_array($id, $result["checked_profiles"])) {
-                    $profile->updateProfile(1);
+                    $profile->updateActivation(1);
                 } else {
-                    $profile->updateProfile(0);
+                    $profile->updateActivation(0);
                 }
             }
             ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"), true);

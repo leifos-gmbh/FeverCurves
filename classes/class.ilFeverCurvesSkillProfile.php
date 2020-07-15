@@ -72,7 +72,7 @@ class ilFeverCurvesSkillProfile
         return $profile_ids;
     }
 
-    public function updateProfile(int $active)
+    public function updateActivation(int $active)
     {
         global $DIC;
 
