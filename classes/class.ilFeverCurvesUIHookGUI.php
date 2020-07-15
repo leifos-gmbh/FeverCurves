@@ -389,7 +389,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
     }
 
     /**
-     * Check
+     * Check if current competence profile is de(activated) for fever chart
      *
      * @param $a_par
      */
