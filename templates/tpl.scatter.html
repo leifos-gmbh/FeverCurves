@@ -18,6 +18,19 @@
     var xLabels = {XLABELS};
     var yLabels = {YLABELS};
 
+    // legend position depending on screen size
+    var legendPosition;
+    function determineLegendPosition(screenSize) {
+      if (screenSize.matches) {
+        legendPosition = preferences.legend.mobilePosition;
+      } else {
+        legendPosition = preferences.legend.desktopPosition;
+      }
+    }
+    var screenSize = window.matchMedia("(max-width: 767px)");
+    determineLegendPosition(screenSize);
+
+
 
     new Chart(document.getElementById('{ID}'), {
         type: 'scatter',
@@ -68,7 +81,7 @@
                 ],
             },
             legend : {
-                position: preferences.legend.position,
+                position: legendPosition,
             },
             tooltips: {
                 enabled: preferences.tooltips.enabled,

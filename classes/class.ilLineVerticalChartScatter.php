@@ -285,7 +285,8 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
 
         // legend
         $preferences->legend = new stdClass();
-        $preferences->legend->position = "right";
+        $preferences->legend->desktopPosition = "right";
+        $preferences->legend->mobilePosition = "top";
 
         // x-axis
         $preferences->xAxis = new stdClass();
