@@ -2,6 +2,7 @@
 /* Copyright (c) 1998-2020 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 use ILIAS\UI\Component\Input\Container\Form\Form;
+use ILIAS\UI\Component\Legacy\Legacy;
 
 /**
  * Class ilFeverCurvesConfigGUI
@@ -44,11 +45,29 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
         $this->tpl = $DIC["tpl"];
         $this->ui_renderer = $DIC->ui()->renderer();
 
+        $info = $this->getInfoText();
+
         if(!$form instanceof Form)
         {
             $form = $this->initConfigurationForm();
         }
-        $this->tpl->setContent($this->ui_renderer->render($form));
+        $this->tpl->setContent($this->ui_renderer->render([$info, $form]));
+    }
+
+    /**
+     * Get info text
+     *
+     * @return Legacy
+     */
+    function getInfoText() : Legacy
+    {
+        global $DIC;
+
+        $this->ui_factory = $DIC->ui()->factory();
+
+        $info_txt = $this->ui_factory->legacy($this->getPluginObject()->txt("skl_levels_info"));
+
+        return $info_txt;
     }
 
     /**
@@ -56,7 +75,7 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
      *
      * @return Form
      */
-    function initConfigurationForm()
+    function initConfigurationForm() : Form
     {
         global $DIC;
 

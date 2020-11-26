@@ -297,6 +297,7 @@ class ilLineVerticalChartScatter extends ilLineVerticalChart
         $preferences->xAxis->min = $this->getXAxisMin();
         $preferences->xAxis->max = $this->getXAxisMax();
         $preferences->xAxis->padding = $this->getXAxisPadding();
+        $preferences->xAxis->autoSkip = false;
 
         // y-axis
         $preferences->yAxis = new stdClass();

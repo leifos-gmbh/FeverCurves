@@ -53,6 +53,9 @@
                         type: preferences.xAxis.type,
                         ticks: {
                             callback: function(value, index, values) {
+                                if (xLabels[value].startsWith("-")) {
+                                  return "";
+                                }
                                 return xLabels[value];
                             },
                             beginAtZero: preferences.xAxis.beginAtZero,
@@ -60,6 +63,7 @@
                             min: preferences.xAxis.min,
                             max: preferences.xAxis.max,
                             padding: preferences.xAxis.padding,
+                            autoSkip: preferences.xAxis.autoSkip
                         },
                     },
                 ],
