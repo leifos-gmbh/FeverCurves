@@ -395,10 +395,10 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
      */
     protected function checkProfileActivation($a_par)
     {
-        $this->getPluginObject()->includeClass("class.ilFeverCurvesSkillProfile.php");
+        $this->getPluginObject()->includeClass("class.ilFeverCurvesSkillProfileRepository.php");
 
         $profile_id = $a_par["personal_skills_gui"]->getProfileId();
-        $deactivated_profile_ids = ilFeverCurvesSkillProfile::getDeactivatedProfileIds();
+        $deactivated_profile_ids = ilFeverCurvesSkillProfileRepository::getDeactivatedProfileIds();
 
         if (in_array($profile_id, $deactivated_profile_ids)) {
             return false;

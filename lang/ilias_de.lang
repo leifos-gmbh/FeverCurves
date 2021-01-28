@@ -1,4 +1,10 @@
 legend_hint#:#Klicken Sie auf einen Eintrag in der Legende um ihn im Diagramm auszublenden!
 skl_profiles#:#Kompetenzprofile
-skl_profiles_fever_selection#:#Wählen Sie aus, für welche Kompetenzprofile das Fieberkurven-Diagramm aktiviert werden soll.
+skl_profiles_fever_selection#:#Profilauswahl
+skl_profiles_fever_selection_info#:#Wählen Sie aus, für welche Kompetenzprofile das Fieberkurven-Diagramm aktiviert werden soll.
 skl_levels_info#:#Information: Um bestimmte Kompetenzlevel auf der x-Achse des Fieberkurven-Diagramms auszublenden, müssen diese "-" als Präfix im Titel enthalten, also z.B. "-sehr hoch" statt "sehr hoch".
+colour_scheme#:#Farbschema
+colour_scheme_presentation#:#Darstellung
+colour_scheme_info#:#Wählen Sie das Farbschema für die Darstellung der Fieberkurven.
+colour_scheme_ilias#:#ILIAS Kompetenzen
+colour_scheme_random#:#Zufällige Farben

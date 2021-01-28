@@ -2,7 +2,7 @@
 /* Copyright (c) 1998-2020 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 use ILIAS\UI\Component\Input\Container\Form\Form;
-use ILIAS\UI\Component\Legacy\Legacy;
+use ILIAS\UI\Component\MessageBox\MessageBox;
 
 /**
  * Class ilFeverCurvesConfigGUI
@@ -57,15 +57,15 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
     /**
      * Get info text
      *
-     * @return Legacy
+     * @return MessageBox
      */
-    function getInfoText() : Legacy
+    function getInfoText() : MessageBox
     {
         global $DIC;
 
         $this->ui_factory = $DIC->ui()->factory();
 
-        $info_txt = $this->ui_factory->legacy($this->getPluginObject()->txt("skl_levels_info"));
+        $info_txt = $this->ui_factory->messageBox()->info($this->getPluginObject()->txt("skl_levels_info"));
 
         return $info_txt;
     }
@@ -85,7 +85,7 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
         $this->ui_factory = $DIC->ui()->factory();
         $this->request = $DIC->http()->request();
 
-        $this->getPluginObject()->includeClass("class.ilFeverCurvesSkillProfile.php");
+        $this->getPluginObject()->includeClass("class.ilFeverCurvesSkillProfileRepository.php");
 
 
         // get all competence profiles
@@ -97,7 +97,7 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
         }
 
         $activated_profile_ids = $profile_ids;
-        $deactivated_profile_ids = ilFeverCurvesSkillProfile::getDeactivatedProfileIds();
+        $deactivated_profile_ids = ilFeverCurvesSkillProfileRepository::getDeactivatedProfileIds();
 
         // get deactivated competence profiles which should be unchecked in the form
         if (!empty($deactivated_profile_ids)) {
@@ -112,34 +112,65 @@ class ilFeverCurvesConfigGUI extends ilPluginConfigGUI
         $multi_select_profiles = $this->ui_factory->input()->field()->multiselect(
             $this->getPluginObject()->txt("skl_profiles"),
             $profiles,
-            $this->getPluginObject()->txt("skl_profiles_fever_selection")
+            $this->getPluginObject()->txt("skl_profiles_fever_selection_info")
         )
         ->withValue($activated_profile_ids);
+
+        // radio input for colour scheme selection
+        $this->getPluginObject()->includeClass("class.ilFeverCurvesSettingsRepository.php");
+        $fever_settings = new ilFeverCurvesSettingsRepository();
+        $radio_colour = $this->ui_factory->input()->field()->radio(
+            $this->getPluginObject()->txt("colour_scheme"),
+            $this->getPluginObject()->txt("colour_scheme_info")
+        )
+            ->withOption("0", $this->getPluginObject()->txt("colour_scheme_ilias"))
+            ->withOption("1", $this->getPluginObject()->txt("colour_scheme_random"))
+            ->withValue((int) $fever_settings->getActiveRandomColours());
+
+        // form sections
+        $section_profiles = $this->ui_factory->input()->field()->section(
+            ['checked_profiles' => $multi_select_profiles],
+            $this->getPluginObject()->txt("skl_profiles_fever_selection")
+        );
+        $section_presentation = $this->ui_factory->input()->field()->section(
+            ['colour_scheme' => $radio_colour],
+            $this->getPluginObject()->txt("colour_scheme_presentation")
+        );
 
         // form and form action handling
         $this->ctrl->setParameterByClass(
             'ilfevercurvesconfiggui',
-            'profiles',
-            'profiles_selected'
+            'fever_curves',
+            'fever_curves_config'
         );
         $form_action = $this->ctrl->getFormAction($this);
-        $form = $this->ui_factory->input()->container()->form()->standard($form_action, ['checked_profiles' => $multi_select_profiles]);
+        $form = $this->ui_factory->input()->container()->form()->standard(
+            $form_action,
+            ["section_profiles" => $section_profiles, "section_presentation" => $section_presentation]
+        );
 
         if ($this->request->getMethod() == "POST"
-            && $this->request->getQueryParams()['profiles'] == "profiles_selected") {
+            && $this->request->getQueryParams()['fever_curves'] == "fever_curves_config") {
             $form = $form->withRequest($this->request);
             $result = $form->getData();
 
             // save (un)checked status for all competence profiles in database
             foreach ($profile_ids as $id) {
-                $profile = new ilFeverCurvesSkillProfile($id);
-                if (!empty($result["checked_profiles"]) && in_array($id, $result["checked_profiles"])) {
+                $profile = new ilFeverCurvesSkillProfileRepository($id);
+                if (!empty($result["section_profiles"]["checked_profiles"])
+                    && in_array($id, $result["section_profiles"]["checked_profiles"])
+                ) {
                     $profile->updateActivation(1);
                 } else {
                     $profile->updateActivation(0);
                 }
             }
+
+            // save colour scheme
+            $fever_settings->setActiveRandomColours($result["section_presentation"]["colour_scheme"]);
+
             ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"), true);
+            $this->ctrl->redirect($this);
         }
 
         return $form;

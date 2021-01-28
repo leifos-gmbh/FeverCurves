@@ -1,4 +1,10 @@
 legend_hint#:#Click on a record in the legend to hide it in the chart!
 skl_profiles#:#Competence Profiles
-skl_profiles_fever_selection#:#Please choose for which competence profiles the fever chart should be displayed.
-skl_levels_info#:#Information: To hide specific competence levels on the x-axis of the fever chat, you have to write them with a prefix, e.g. "-very high" instead of "very high".
+skl_profiles_fever_selection#:#Profile Selection
+skl_profiles_fever_selection_info#:#Please choose for which competence profiles the fever chart should be displayed.
+skl_levels_info#:#Information: To hide specific competence levels on the x-axis of the fever chart, you have to write them with a prefix, e.g. "-very high" instead of "very high".
+colour_scheme#:#Colour Scheme
+colour_scheme_presentation#:#Presentation
+colour_scheme_info#:#Please choose the colour scheme for the presentation of the fever curves.
+colour_scheme_ilias#:#ILIAS Competences
+colour_scheme_random#:#Random Colours

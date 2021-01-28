@@ -6,7 +6,7 @@
  *
  * @author Thomas Famula <famula@leifos.de>
  */
-class ilFeverCurvesSkillProfile
+class ilFeverCurvesSkillProfileRepository
 {
     /**
      * @var int $id
@@ -14,7 +14,7 @@ class ilFeverCurvesSkillProfile
     protected $id;
 
     /**
-     * ilFeverCurvesSkillProfile constructor.
+     * ilFeverCurvesSkillProfileRepository constructor.
      *
      * @param int $a_id
      */

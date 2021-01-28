@@ -1,6 +1,8 @@
 <?php
 /* Copyright (c) 1998-2020 ILIAS open source, Extended GPL, see docs/LICENSE */
 
+include_once("./Customizing/global/plugins/Services/UIComponent/UserInterfaceHook/FeverCurves/classes/class.ilFeverCurvesSettingsRepository.php");
+
 /**
  * Abstract chart data series base class
  *
@@ -73,7 +75,7 @@ abstract class ilLineVerticalChartData
 
     public function setColor(string $a_color)
     {
-        $this->color = $a_color; //change to hex code
+        $this->color = $a_color;
     }
 
     public function getColor()
@@ -98,8 +100,13 @@ abstract class ilLineVerticalChartData
                 $series->data[] = ["x" => $point[0], "y" => $point[1]];
             }
         }
-        $series->borderColor = $this->getColor();
-        $series->backgroundColor = $this->getColor();
+        $fever_settings = new ilFeverCurvesSettingsRepository();
+        if (!(bool) $fever_settings->getActiveRandomColours()) {
+            $series->borderColor = $this->getColor();
+            $series->backgroundColor = $this->getColor();
+            $series->pointBorderColor = $this->getColor();
+            $series->pointBackgroundColor = $this->getColor();
+        }
 
         $a_data[] = $series;
     }
