@@ -23,6 +23,10 @@ class ilFeverCurvesPlugin extends ilUserInterfaceHookPlugin
         if ($ilDB->tableExists("skl_profile_fever")) {
             $ilDB->dropTable("skl_profile_fever");
         }
+        $ilDB->manipulate(
+            "DELETE FROM settings where keyword = " .
+            $ilDB->quote("fever_random_colours", "text")
+        );
     }
 }
 
