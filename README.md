@@ -4,7 +4,7 @@ Fever curves competence plugin
 
 **Requirements**
 
-- ILIAS: 5.4.x - 7.x
+- ILIAS: 7.2+
  
 **Installation**
 - Download the zip file

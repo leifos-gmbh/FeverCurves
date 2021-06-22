@@ -89,7 +89,7 @@ class ilFeverCurvesUIHookGUI extends ilUIHookPluginGUI
 
 
         //if ($a_skills == null) {
-        $a_skills = $a_par["personal_skills_gui"]->obj_skills;
+        $a_skills = $a_par["personal_skills_gui"]->getObjectSkills();
         //}
 
         //if ($a_user_id == 0) {
